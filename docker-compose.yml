@@ -4,6 +4,11 @@ services:
   db:
     image: postgres:12.3
     restart: always
-    environment: 
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
+
+volumes:
+  db-data:
