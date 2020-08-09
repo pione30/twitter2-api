@@ -3,6 +3,7 @@ table! {
         id -> Uuid,
         body -> Text,
         user_id -> Uuid,
+        created_at -> Timestamptz,
     }
 }
 
