@@ -1,3 +1,6 @@
+mod infra;
+use infra::establish_connection;
+
 fn main() {
-    println!("Hello, world!");
+    let connection = establish_connection();
 }
