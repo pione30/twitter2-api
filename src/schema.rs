@@ -10,6 +10,8 @@ table! {
     users (id) {
         id -> Uuid,
         name -> Varchar,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
     }
 }
 
