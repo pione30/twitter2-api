@@ -3,6 +3,7 @@ table! {
         id -> Uuid,
         body -> Text,
         user_id -> Uuid,
+        created_at -> Timestamptz,
     }
 }
 
@@ -10,6 +11,8 @@ table! {
     users (id) {
         id -> Uuid,
         name -> Varchar,
+        created_at -> Timestamptz,
+        updated_at -> Timestamptz,
     }
 }
 
