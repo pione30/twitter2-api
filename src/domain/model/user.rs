@@ -1,15 +1,18 @@
 use crate::domain::model::UserId;
-use diesel::sql_types::Timestamptz;
+use chrono::{DateTime, Utc};
 use diesel::{Insertable, Queryable};
 use twitter2_api::schema::users;
+use uuid::Uuid;
 
 #[derive(Queryable)]
 pub struct User {
-    pub id: UserId,
+    #[diesel(deserialize_as = "UserId")]
+    pub id: Uuid,
     pub name: String,
-    pub created_at: Timestamptz,
-    pub updated_at: Timestamptz,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
 }
+
 #[derive(Insertable)]
 #[table_name = "users"]
 pub struct NewUser<'a> {
