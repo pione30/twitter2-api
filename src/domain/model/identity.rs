@@ -1,6 +1,7 @@
 use diesel::Queryable;
 use uuid::Uuid;
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct UserId(Uuid);
 
 impl Into<Uuid> for UserId {

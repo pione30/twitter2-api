@@ -4,7 +4,7 @@ use diesel::{Insertable, Queryable};
 use twitter2_api::schema::users;
 use uuid::Uuid;
 
-#[derive(Queryable)]
+#[derive(Queryable, Debug, PartialEq, Eq)]
 pub struct User {
     #[diesel(deserialize_as = "UserId")]
     pub id: Uuid,
@@ -13,7 +13,7 @@ pub struct User {
     pub updated_at: DateTime<Utc>,
 }
 
-#[derive(Insertable)]
+#[derive(Insertable, Debug, PartialEq, Eq)]
 #[table_name = "users"]
 pub struct NewUser<'a> {
     pub name: &'a str,
