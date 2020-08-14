@@ -8,6 +8,12 @@ pub struct UserRepository {
     conn: Arc<PgConnection>,
 }
 
+impl UserRepository {
+    pub fn new(conn: Arc<PgConnection>) -> Self {
+        UserRepository { conn }
+    }
+}
+
 impl IUserRepositroy for UserRepository {
     fn create<'a>(&self, name: &'a str) -> Result<User, ServiceError> {
         use twitter2_api::schema::users;
