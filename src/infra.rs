@@ -1,2 +1,4 @@
 pub mod db_connector;
-pub mod user_repository;
+
+mod user_repository;
+pub use user_repository::*;
