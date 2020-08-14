@@ -25,4 +25,13 @@ impl IUserRepositroy for UserRepository {
             .get_result(&*self.conn)
             .map_err(ServiceError::CreationFailed)
     }
+
+    fn find_by_name<'a>(&self, name_: &'a str) -> Result<User, ServiceError> {
+        use twitter2_api::schema::users::dsl::*;
+
+        users
+            .filter(name.eq(name_))
+            .first(&*self.conn)
+            .map_err(ServiceError::LoadFromDBFaild)
+    }
 }

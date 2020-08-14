@@ -22,4 +22,5 @@ pub struct NewUser<'a> {
 
 pub trait IUserRepositroy {
     fn create<'a>(&self, name: &'a str) -> Result<User, ServiceError>;
+    fn find_by_name<'a>(&self, name: &'a str) -> Result<User, ServiceError>;
 }

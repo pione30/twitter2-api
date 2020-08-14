@@ -20,5 +20,8 @@ fn main() -> Result<()> {
 
     println!("Saved User with name: {}, id: {}", user.name, user.id);
 
+    let user = user_repository.find_by_name(name)?;
+    println!("That user is just now fetched as: {:?}", user);
+
     Ok(())
 }
