@@ -1,21 +1,22 @@
-use crate::domain::model::{NewUser, User};
+use crate::domain::model::{IUserRepositroy, NewUser, User};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use thiserror::Error;
+use std::sync::Arc;
+use twitter2_api::error::ServiceError;
 
-#[derive(Error, Debug)]
-pub enum UserRepositoryError {
-    #[error("{0}")]
-    CreationFailed(#[from] diesel::result::Error),
+pub struct UserRepository {
+    conn: Arc<PgConnection>,
 }
 
-pub fn create<'a>(conn: &PgConnection, name: &'a str) -> Result<User, UserRepositoryError> {
-    use twitter2_api::schema::users;
+impl IUserRepositroy for UserRepository {
+    fn create<'a>(&self, name: &'a str) -> Result<User, ServiceError> {
+        use twitter2_api::schema::users;
 
-    let new_user = NewUser { name };
+        let new_user = NewUser { name };
 
-    diesel::insert_into(users::table)
-        .values(&new_user)
-        .get_result(conn)
-        .map_err(UserRepositoryError::CreationFailed)
+        diesel::insert_into(users::table)
+            .values(&new_user)
+            .get_result(&*self.conn)
+            .map_err(ServiceError::CreationFailed)
+    }
 }
