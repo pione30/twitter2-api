@@ -1,6 +1,7 @@
 use crate::domain::model::UserId;
 use chrono::{DateTime, Utc};
 use diesel::{Insertable, Queryable};
+use twitter2_api::error::ServiceError;
 use twitter2_api::schema::users;
 use uuid::Uuid;
 
@@ -17,4 +18,8 @@ pub struct User {
 #[table_name = "users"]
 pub struct NewUser<'a> {
     pub name: &'a str,
+}
+
+pub trait IUserRepositroy {
+    fn create<'a>(&self, name: &'a str) -> Result<User, ServiceError>;
 }

@@ -2,9 +2,10 @@ mod domain;
 mod infra;
 use anyhow::Result;
 use std::io::stdin;
+use std::sync::Arc;
 
 fn main() -> Result<()> {
-    let connection = infra::db_connector::establish_connection()?;
+    let connection = Arc::new(infra::db_connector::establish_connection()?);
 
     println!("Type the name of a new user.");
     let mut name = String::new();
@@ -12,7 +13,11 @@ fn main() -> Result<()> {
     // Drop the newline character
     let name = &name[..(name.len() - 1)];
 
-    let user = infra::user_repository::create(&connection, name)?;
+    use domain::model::IUserRepositroy;
+    let conn = Arc::clone(&connection);
+    let user_repository = infra::UserRepository::new(conn);
+    let user = user_repository.create(name)?;
+
     println!("Saved User with name: {}, id: {}", user.name, user.id);
 
     Ok(())
