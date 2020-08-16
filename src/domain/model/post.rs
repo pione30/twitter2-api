@@ -1,6 +1,7 @@
-use crate::domain::model::{PostId, UserId};
+use crate::domain::model::{PostId, User, UserId};
 use chrono::{DateTime, Utc};
 use diesel::{Insertable, Queryable};
+use twitter2_api::error::ServiceError;
 use twitter2_api::schema::posts;
 use uuid::Uuid;
 
@@ -19,4 +20,8 @@ pub struct Post {
 pub struct NewPost<'a> {
     pub body: &'a str,
     pub user_id: &'a Uuid,
+}
+
+pub trait IPostRepository {
+    fn create<'a>(&self, body: &'a str, user: &'a User) -> Result<Post, ServiceError>;
 }
