@@ -20,7 +20,7 @@ pub struct NewUser<'a> {
     pub name: &'a str,
 }
 
-pub trait IUserRepositroy {
+pub trait IUserRepository {
     fn create<'a>(&self, name: &'a str) -> Result<User, ServiceError>;
     fn find_by_name<'a>(&self, name: &'a str) -> Result<User, ServiceError>;
 }
