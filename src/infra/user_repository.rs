@@ -1,4 +1,4 @@
-use crate::domain::model::{IUserRepositroy, NewUser, User};
+use crate::domain::model::{IUserRepository, NewUser, User};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use std::sync::Arc;
@@ -14,7 +14,7 @@ impl UserRepository {
     }
 }
 
-impl IUserRepositroy for UserRepository {
+impl IUserRepository for UserRepository {
     fn create<'a>(&self, name: &'a str) -> Result<User, ServiceError> {
         use twitter2_api::schema::users;
 
