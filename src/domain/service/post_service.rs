@@ -1,0 +1,30 @@
+use crate::domain::model::{IPostRepository, IUserRepositroy, Post};
+use std::sync::Arc;
+use twitter2_api::error::ServiceError;
+
+pub struct PostService<PR, UR>
+where
+    PR: IPostRepository,
+    UR: IUserRepositroy,
+{
+    post_repository: Arc<PR>,
+    user_repository: Arc<UR>,
+}
+
+impl<PR, UR> PostService<PR, UR>
+where
+    PR: IPostRepository,
+    UR: IUserRepositroy,
+{
+    pub fn new(post_repository: Arc<PR>, user_repository: Arc<UR>) -> Self {
+        PostService {
+            post_repository,
+            user_repository,
+        }
+    }
+
+    pub fn create<'a>(&self, body: &'a str, user_name: &'a str) -> Result<Post, ServiceError> {
+        let user = self.user_repository.find_by_name(user_name)?;
+        self.post_repository.create(body, &user)
+    }
+}
