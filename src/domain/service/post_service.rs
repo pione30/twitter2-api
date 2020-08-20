@@ -1,11 +1,11 @@
-use crate::domain::model::{IPostRepository, IUserRepositroy, Post};
+use crate::domain::model::{IPostRepository, IUserRepository, Post};
 use std::sync::Arc;
 use twitter2_api::error::ServiceError;
 
 pub struct PostService<PR, UR>
 where
     PR: IPostRepository,
-    UR: IUserRepositroy,
+    UR: IUserRepository,
 {
     post_repository: Arc<PR>,
     user_repository: Arc<UR>,
@@ -14,7 +14,7 @@ where
 impl<PR, UR> PostService<PR, UR>
 where
     PR: IPostRepository,
-    UR: IUserRepositroy,
+    UR: IUserRepository,
 {
     pub fn new(post_repository: Arc<PR>, user_repository: Arc<UR>) -> Self {
         PostService {
