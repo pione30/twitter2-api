@@ -2,12 +2,18 @@ use crate::domain::model::{IUserRepositroy, User};
 use std::sync::Arc;
 use twitter2_api::error::ServiceError;
 
-pub struct UserService {
-    user_repository: Arc<dyn IUserRepositroy>,
+pub struct UserService<UR>
+where
+    UR: IUserRepositroy,
+{
+    user_repository: Arc<UR>,
 }
 
-impl UserService {
-    pub fn new(user_repository: Arc<dyn IUserRepositroy>) -> Self {
+impl<UR> UserService<UR>
+where
+    UR: IUserRepositroy,
+{
+    pub fn new(user_repository: Arc<UR>) -> Self {
         UserService { user_repository }
     }
 
