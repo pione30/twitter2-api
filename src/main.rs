@@ -4,6 +4,8 @@ mod infra;
 mod app;
 use app::App;
 
+mod server;
+
 use anyhow::Result;
 
 fn main() -> Result<()> {
