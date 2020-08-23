@@ -14,8 +14,8 @@ pub struct Services {
 }
 
 impl App {
-    pub fn new() -> Result<Self> {
-        let conn = Arc::new(db_connector::establish_connection()?);
+    pub fn new(database_url: &str) -> Result<Self> {
+        let conn = Arc::new(db_connector::establish_connection(database_url)?);
         let user_repository = UserRepository::new(Arc::clone(&conn));
         let post_repository = PostRepository::new(Arc::clone(&conn));
         let user_repository = Arc::new(user_repository);
