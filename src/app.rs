@@ -4,10 +4,17 @@ use std::sync::Arc;
 
 use anyhow::Result;
 
-pub struct App {}
+pub struct App {
+    pub services: Services,
+}
+
+pub struct Services {
+    pub user_service: UserService<UserRepository>,
+    pub post_service: PostService<PostRepository, UserRepository>,
+}
 
 impl App {
-    pub fn run() -> Result<()> {
+    pub fn new() -> Result<Self> {
         let conn = Arc::new(db_connector::establish_connection()?);
         let user_repository = UserRepository::new(Arc::clone(&conn));
         let post_repository = PostRepository::new(Arc::clone(&conn));
@@ -17,6 +24,12 @@ impl App {
         let user_service = UserService::new(Arc::clone(&user_repository));
         let post_service =
             PostService::new(Arc::clone(&post_repository), Arc::clone(&user_repository));
-        Ok(())
+
+        let services = Services {
+            user_service,
+            post_service,
+        };
+
+        Ok(App { services })
     }
 }
