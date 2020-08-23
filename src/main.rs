@@ -17,7 +17,7 @@ async fn main() -> Result<()> {
 
     let app = App::new(&database_url)?;
 
-    let server = server::Server::new();
+    let server = server::Server::new(app);
     server.run(([0, 0, 0, 0], 3030)).await;
 
     Ok(())
