@@ -1,6 +1,3 @@
-mod domain;
-mod infra;
-
 mod app;
 use app::App;
 

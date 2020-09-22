@@ -1,8 +1,8 @@
 use crate::domain::model::{IUserRepository, NewUser, User};
+use crate::error::ServiceError;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use std::sync::Arc;
-use twitter2_api::error::ServiceError;
 
 pub struct UserRepository {
     conn: Arc<PgConnection>,
@@ -16,7 +16,7 @@ impl UserRepository {
 
 impl IUserRepository for UserRepository {
     fn create<'a>(&self, name: &'a str) -> Result<User, ServiceError> {
-        use twitter2_api::schema::users;
+        use crate::schema::users;
 
         let new_user = NewUser { name };
 
@@ -27,7 +27,7 @@ impl IUserRepository for UserRepository {
     }
 
     fn find_by_name<'a>(&self, name: &'a str) -> Result<User, ServiceError> {
-        use twitter2_api::schema::users;
+        use crate::schema::users;
 
         users::table
             .filter(users::name.eq(name))

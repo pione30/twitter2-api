@@ -1,6 +1,6 @@
 use crate::domain::model::{IPostRepository, IUserRepository, Post};
+use crate::error::ServiceError;
 use std::sync::Arc;
-use twitter2_api::error::ServiceError;
 
 pub struct PostService<PR, UR>
 where
