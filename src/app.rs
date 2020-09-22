@@ -1,5 +1,5 @@
-use crate::domain::service::{PostService, UserService};
-use crate::infra::{db_connector, PostRepository, UserRepository};
+use twitter2_api::domain::service::{PostService, UserService};
+use twitter2_api::infra::{db_connector, PostRepository, UserRepository};
 use std::sync::Arc;
 
 use anyhow::Result;

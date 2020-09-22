@@ -1,8 +1,8 @@
 use crate::domain::model::{IPostRepository, NewPost, Post, User};
+use crate::error::ServiceError;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use std::sync::Arc;
-use twitter2_api::error::ServiceError;
 
 pub struct PostRepository {
     conn: Arc<PgConnection>,
@@ -16,7 +16,7 @@ impl PostRepository {
 
 impl IPostRepository for PostRepository {
     fn create<'a>(&self, body: &'a str, user: &'a User) -> Result<Post, ServiceError> {
-        use twitter2_api::schema::posts;
+        use crate::schema::posts;
 
         let new_post = NewPost {
             body,

@@ -1,8 +1,8 @@
 use crate::domain::model::UserId;
+use crate::error::ServiceError;
+use crate::schema::users;
 use chrono::{DateTime, Utc};
 use diesel::{Insertable, Queryable};
-use twitter2_api::error::ServiceError;
-use twitter2_api::schema::users;
 use uuid::Uuid;
 
 #[derive(Queryable, Debug, PartialEq, Eq)]
