@@ -37,8 +37,14 @@ fn api() -> BoxedFilter<(impl Reply,)> {
 
     api.and(
         v1.and(authorization)
-            .map(|token| {
-                println!("Authorization token: {}", token);
+            .and_then(|autorization_token: String| async move {
+                autorization_token
+                    .trim()
+                    .strip_prefix("Bearer ")
+                    .map(|token| {
+                        println!("Authorization token: {}", token);
+                    })
+                    .ok_or_else(warp::reject::reject)
             })
             // untuple_one() is necessary
             .untuple_one()
