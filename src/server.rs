@@ -1,4 +1,5 @@
 use crate::app::App;
+use std::env;
 use std::future::Future;
 use std::net::SocketAddr;
 use warp::{filters::BoxedFilter, Filter, Reply};
@@ -24,9 +25,16 @@ fn healthcheck() -> BoxedFilter<(impl Reply,)> {
 }
 
 fn api() -> BoxedFilter<(impl Reply,)> {
+    let authorization = warp::header::<String>("authorization");
+
+    let allowed_origin = env::var("ALLOWED_ORIGIN").expect("ALLOWED_ORIGIN must be set");
+    let cors = warp::cors()
+        .allow_origin(allowed_origin.as_str())
+        .allow_headers(vec!["authorization"])
+        .allow_methods(vec!["GET", "POST", "DELETE"]);
+
     let api = warp::path("api");
     let v1 = warp::path("v1");
-    let authorization = warp::header::<String>("authorization");
 
     let posts = warp::path("posts");
     let own_posts = warp::path("own").map(|| {
@@ -48,7 +56,8 @@ fn api() -> BoxedFilter<(impl Reply,)> {
             })
             // untuple_one() is necessary
             .untuple_one()
-            .and(posts),
+            .and(posts)
+            .with(cors),
     )
     .boxed()
 }
