@@ -24,4 +24,10 @@ pub struct NewPost<'a> {
 
 pub trait IPostRepository {
     fn create<'a>(&self, body: &'a str, user: &'a User) -> Result<Post, ServiceError>;
+    fn pagenate_posts_of_user<'a>(
+        &self,
+        user: &'a User,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<Post>, ServiceError>;
 }

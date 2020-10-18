@@ -27,4 +27,15 @@ where
         let user = self.user_repository.find_by_sub_id(sub_id)?;
         self.post_repository.create(body, &user)
     }
+
+    pub fn pagenate_posts_of_user_by_sub_id(
+        &self,
+        sub_id: &str,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<Post>, ServiceError> {
+        let user = self.user_repository.find_by_sub_id(sub_id)?;
+        self.post_repository
+            .pagenate_posts_of_user(&user, limit, offset)
+    }
 }

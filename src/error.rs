@@ -6,4 +6,6 @@ pub enum ServiceError {
     CreationFailed(diesel::result::Error),
     #[error("{0}")]
     LoadFromDBFaild(diesel::result::Error),
+    #[error("{0}")]
+    DBError(#[from] diesel::result::Error),
 }

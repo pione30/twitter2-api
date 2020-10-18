@@ -28,4 +28,23 @@ impl IPostRepository for PostRepository {
             .get_result(&*self.conn)
             .map_err(ServiceError::CreationFailed)
     }
+
+    fn pagenate_posts_of_user<'a>(
+        &self,
+        user: &'a User,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<Post>, ServiceError> {
+        use crate::schema::posts;
+        use crate::schema::users;
+
+        posts::table
+            .inner_join(users::table.on(users::id.eq(user.id)))
+            .select(posts::all_columns)
+            .order_by(posts::created_at.desc())
+            .limit(limit)
+            .offset(offset)
+            .load(&*self.conn)
+            .map_err(ServiceError::DBError)
+    }
 }
