@@ -17,7 +17,7 @@ where
         UserService { user_repository }
     }
 
-    pub fn create<'a>(&self, name: &'a str) -> Result<User, ServiceError> {
-        self.user_repository.create(name)
+    pub fn create<'a>(&self, sub_id: &'a str) -> Result<User, ServiceError> {
+        self.user_repository.create(sub_id)
     }
 }

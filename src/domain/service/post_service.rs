@@ -23,8 +23,8 @@ where
         }
     }
 
-    pub fn create<'a>(&self, body: &'a str, user_name: &'a str) -> Result<Post, ServiceError> {
-        let user = self.user_repository.find_by_name(user_name)?;
+    pub fn create<'a>(&self, body: &'a str, sub_id: &'a str) -> Result<Post, ServiceError> {
+        let user = self.user_repository.find_by_sub_id(sub_id)?;
         self.post_repository.create(body, &user)
     }
 }
