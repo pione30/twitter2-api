@@ -2,6 +2,7 @@ use crate::app::App;
 use std::env;
 use std::future::Future;
 use std::net::SocketAddr;
+use twitter2_api::infra::jwt_handler;
 use warp::{filters::BoxedFilter, Filter, Reply};
 
 pub struct Server {
@@ -25,13 +26,31 @@ fn healthcheck() -> BoxedFilter<(impl Reply,)> {
 }
 
 fn api() -> BoxedFilter<(impl Reply,)> {
-    let authorization = warp::header::<String>("authorization");
-
     let allowed_origin = env::var("ALLOWED_ORIGIN").expect("ALLOWED_ORIGIN must be set");
     let cors = warp::cors()
         .allow_origin(allowed_origin.as_str())
         .allow_headers(vec!["authorization"])
         .allow_methods(vec!["GET", "POST", "DELETE"]);
+
+    let authorization = warp::header::<String>("authorization")
+        .and_then(|autorization_token: String| async move {
+            let token = autorization_token
+                .trim()
+                .strip_prefix("Bearer ")
+                .ok_or_else(warp::reject::reject)?;
+
+            jwt_handler::verify(token)
+                .await
+                .map(|claim| {
+                    println!("{:?}", claim);
+                })
+                .map_err(|err| {
+                    println!("{:?}", err);
+                    warp::reject::reject()
+                })
+        })
+        // untuple_one() is necessary
+        .untuple_one();
 
     let api = warp::path("api");
     let v1 = warp::path("v1");
@@ -43,21 +62,5 @@ fn api() -> BoxedFilter<(impl Reply,)> {
     });
     let posts = posts.and(own_posts);
 
-    api.and(
-        v1.and(authorization)
-            .and_then(|autorization_token: String| async move {
-                autorization_token
-                    .trim()
-                    .strip_prefix("Bearer ")
-                    .map(|token| {
-                        println!("Authorization token: {}", token);
-                    })
-                    .ok_or_else(warp::reject::reject)
-            })
-            // untuple_one() is necessary
-            .untuple_one()
-            .and(posts)
-            .with(cors),
-    )
-    .boxed()
+    api.and(v1.and(authorization).and(posts)).with(cors).boxed()
 }
