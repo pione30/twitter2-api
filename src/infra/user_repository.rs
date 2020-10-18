@@ -15,10 +15,10 @@ impl UserRepository {
 }
 
 impl IUserRepository for UserRepository {
-    fn create<'a>(&self, name: &'a str) -> Result<User, ServiceError> {
+    fn create<'a>(&self, sub_id: &'a str) -> Result<User, ServiceError> {
         use crate::schema::users;
 
-        let new_user = NewUser { name };
+        let new_user = NewUser { sub_id };
 
         diesel::insert_into(users::table)
             .values(&new_user)
@@ -26,11 +26,11 @@ impl IUserRepository for UserRepository {
             .map_err(ServiceError::CreationFailed)
     }
 
-    fn find_by_name<'a>(&self, name: &'a str) -> Result<User, ServiceError> {
+    fn find_by_sub_id<'a>(&self, sub_id: &'a str) -> Result<User, ServiceError> {
         use crate::schema::users;
 
         users::table
-            .filter(users::name.eq(name))
+            .filter(users::sub_id.eq(sub_id))
             .first(&*self.conn)
             .map_err(ServiceError::LoadFromDBFaild)
     }
