@@ -26,7 +26,7 @@ impl IPostRepository for PostRepository {
         diesel::insert_into(posts::table)
             .values(&new_post)
             .get_result(&*self.conn)
-            .map_err(ServiceError::CreationFailed)
+            .map_err(ServiceError::DbQueryFailed)
     }
 
     fn pagenate_posts_of_user<'a>(
@@ -45,6 +45,6 @@ impl IPostRepository for PostRepository {
             .limit(limit)
             .offset(offset)
             .load(&*self.conn)
-            .map_err(ServiceError::DBError)
+            .map_err(ServiceError::DbQueryFailed)
     }
 }
