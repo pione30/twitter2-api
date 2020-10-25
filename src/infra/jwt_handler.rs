@@ -34,8 +34,8 @@ struct Jwks {
 
 #[derive(Deserialize, Debug)]
 pub struct Claims {
-    scope: String,
-    sub: String,
+    pub scope: String,
+    pub sub: String,
 }
 
 async fn fetch_jwks() -> Result<Jwks, JwtError> {
