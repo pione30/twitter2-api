@@ -5,9 +5,9 @@ use thiserror::Error;
 #[derive(Error, Debug)]
 pub enum DbConnectionError {
     #[error("{0}")]
-    Connection(#[from] diesel::ConnectionError),
+    ConnectionFailed(#[from] diesel::result::ConnectionError),
 }
 
 pub fn establish_connection(database_url: &str) -> Result<PgConnection, DbConnectionError> {
-    PgConnection::establish(database_url).map_err(DbConnectionError::Connection)
+    PgConnection::establish(database_url).map_err(DbConnectionError::ConnectionFailed)
 }

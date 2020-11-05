@@ -2,6 +2,7 @@ use crate::domain::model::{IPostRepository, IUserRepository, Post};
 use crate::error::ServiceError;
 use std::sync::Arc;
 
+#[derive(Clone)]
 pub struct PostService<PR, UR>
 where
     PR: IPostRepository,
@@ -26,5 +27,16 @@ where
     pub fn create<'a>(&self, body: &'a str, sub_id: &'a str) -> Result<Post, ServiceError> {
         let user = self.user_repository.find_by_sub_id(sub_id)?;
         self.post_repository.create(body, &user)
+    }
+
+    pub fn pagenate_posts_of_user_by_sub_id(
+        &self,
+        sub_id: &str,
+        limit: i64,
+        offset: i64,
+    ) -> Result<Vec<Post>, ServiceError> {
+        let user = self.user_repository.find_by_sub_id(sub_id)?;
+        self.post_repository
+            .pagenate_posts_of_user(&user, limit, offset)
     }
 }

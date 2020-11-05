@@ -1,13 +1,15 @@
+use std::sync::{Arc, Mutex};
 use twitter2_api::domain::service::{PostService, UserService};
 use twitter2_api::infra::{db_connector, PostRepository, UserRepository};
-use std::sync::Arc;
 
 use anyhow::Result;
 
+#[derive(Clone)]
 pub struct App {
     pub services: Services,
 }
 
+#[derive(Clone)]
 pub struct Services {
     pub user_service: UserService<UserRepository>,
     pub post_service: PostService<PostRepository, UserRepository>,
@@ -15,7 +17,10 @@ pub struct Services {
 
 impl App {
     pub fn new(database_url: &str) -> Result<Self> {
-        let conn = Arc::new(db_connector::establish_connection(database_url)?);
+        let conn = Arc::new(Mutex::new(db_connector::establish_connection(
+            database_url,
+        )?));
+
         let user_repository = UserRepository::new(Arc::clone(&conn));
         let post_repository = PostRepository::new(Arc::clone(&conn));
         let user_repository = Arc::new(user_repository);

@@ -2,6 +2,7 @@ use crate::domain::model::{IUserRepository, User};
 use crate::error::ServiceError;
 use std::sync::Arc;
 
+#[derive(Clone)]
 pub struct UserService<UR>
 where
     UR: IUserRepository,
