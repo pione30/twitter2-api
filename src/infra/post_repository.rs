@@ -40,7 +40,8 @@ impl IPostRepository for PostRepository {
         use crate::schema::users;
 
         posts::table
-            .inner_join(users::table.on(users::id.eq(user.id)))
+            .inner_join(users::table)
+            .filter(users::id.eq(&user.id))
             .select(posts::all_columns)
             .order_by(posts::created_at.desc())
             .limit(limit)
