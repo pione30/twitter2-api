@@ -2,14 +2,14 @@ use crate::domain::model::{IPostRepository, NewPost, Post, User};
 use crate::error::ServiceError;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 pub struct PostRepository {
-    conn: Arc<PgConnection>,
+    conn: Arc<Mutex<PgConnection>>,
 }
 
 impl PostRepository {
-    pub fn new(conn: Arc<PgConnection>) -> Self {
+    pub fn new(conn: Arc<Mutex<PgConnection>>) -> Self {
         PostRepository { conn }
     }
 }
@@ -25,7 +25,7 @@ impl IPostRepository for PostRepository {
 
         diesel::insert_into(posts::table)
             .values(&new_post)
-            .get_result(&*self.conn)
+            .get_result(&*self.conn.lock().unwrap())
             .map_err(ServiceError::DbQueryFailed)
     }
 
@@ -44,7 +44,7 @@ impl IPostRepository for PostRepository {
             .order_by(posts::created_at.desc())
             .limit(limit)
             .offset(offset)
-            .load(&*self.conn)
+            .load(&*self.conn.lock().unwrap())
             .map_err(ServiceError::DbQueryFailed)
     }
 }

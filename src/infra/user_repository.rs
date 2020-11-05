@@ -2,14 +2,14 @@ use crate::domain::model::{IUserRepository, NewUser, User};
 use crate::error::ServiceError;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 pub struct UserRepository {
-    conn: Arc<PgConnection>,
+    conn: Arc<Mutex<PgConnection>>,
 }
 
 impl UserRepository {
-    pub fn new(conn: Arc<PgConnection>) -> Self {
+    pub fn new(conn: Arc<Mutex<PgConnection>>) -> Self {
         UserRepository { conn }
     }
 }
@@ -22,7 +22,7 @@ impl IUserRepository for UserRepository {
 
         diesel::insert_into(users::table)
             .values(&new_user)
-            .get_result(&*self.conn)
+            .get_result(&*self.conn.lock().unwrap())
             .map_err(ServiceError::DbQueryFailed)
     }
 
@@ -31,7 +31,7 @@ impl IUserRepository for UserRepository {
 
         users::table
             .filter(users::sub_id.eq(sub_id))
-            .first(&*self.conn)
+            .first(&*self.conn.lock().unwrap())
             .map_err(ServiceError::DbQueryFailed)
     }
 }
