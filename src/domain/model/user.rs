@@ -7,7 +7,6 @@ use uuid::Uuid;
 
 #[derive(Queryable, Debug, PartialEq, Eq)]
 pub struct User {
-    #[diesel(deserialize_as = "UserId")]
     pub id: Uuid,
     pub sub_id: String,
     pub created_at: DateTime<Utc>,

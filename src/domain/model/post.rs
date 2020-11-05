@@ -3,14 +3,13 @@ use crate::error::ServiceError;
 use crate::schema::posts;
 use chrono::{DateTime, Utc};
 use diesel::{Insertable, Queryable};
+use serde::Serialize;
 use uuid::Uuid;
 
-#[derive(Queryable, Debug, PartialEq, Eq)]
+#[derive(Serialize, Queryable, Debug, PartialEq, Eq)]
 pub struct Post {
-    #[diesel(deserialize_as = "PostId")]
     pub id: Uuid,
     pub body: String,
-    #[diesel(deserialize_as = "UserId")]
     pub user_id: Uuid,
     pub created_at: DateTime<Utc>,
 }
