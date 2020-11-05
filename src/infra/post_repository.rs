@@ -4,6 +4,7 @@ use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use std::sync::{Arc, Mutex};
 
+#[derive(Clone)]
 pub struct PostRepository {
     conn: Arc<Mutex<PgConnection>>,
 }

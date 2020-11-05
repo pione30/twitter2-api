@@ -2,6 +2,7 @@ use crate::domain::model::{IPostRepository, IUserRepository, Post};
 use crate::error::ServiceError;
 use std::sync::Arc;
 
+#[derive(Clone)]
 pub struct PostService<PR, UR>
 where
     PR: IPostRepository,

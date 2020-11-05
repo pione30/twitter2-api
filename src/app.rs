@@ -4,10 +4,12 @@ use twitter2_api::infra::{db_connector, PostRepository, UserRepository};
 
 use anyhow::Result;
 
+#[derive(Clone)]
 pub struct App {
     pub services: Services,
 }
 
+#[derive(Clone)]
 pub struct Services {
     pub user_service: UserService<UserRepository>,
     pub post_service: PostService<PostRepository, UserRepository>,
