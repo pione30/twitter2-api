@@ -21,14 +21,14 @@ impl App {
             database_url,
         )?));
 
-        let user_repository = UserRepository::new(Arc::clone(&conn));
-        let post_repository = PostRepository::new(Arc::clone(&conn));
+        let user_repository = UserRepository::new(conn.clone());
+        let post_repository = PostRepository::new(conn.clone());
         let user_repository = Arc::new(user_repository);
         let post_repository = Arc::new(post_repository);
 
-        let user_service = UserService::new(Arc::clone(&user_repository));
+        let user_service = UserService::new(user_repository.clone());
         let post_service =
-            PostService::new(Arc::clone(&post_repository), Arc::clone(&user_repository));
+            PostService::new(post_repository.clone(), user_repository.clone());
 
         let services = Services {
             user_service,
