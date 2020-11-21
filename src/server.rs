@@ -21,8 +21,8 @@ impl Server {
         warp::serve(routes).run(addr)
     }
 
-    fn healthcheck(&self) -> BoxedFilter<(impl Reply,)> {
-        warp::path("healthcheck").map(|| "ok").boxed()
+    fn healthcheck(&self) -> BoxedFilter<(String,)> {
+        warp::path("healthcheck").map(|| "ok".into()).boxed()
     }
 
     fn api(&self) -> BoxedFilter<(impl Reply,)> {
