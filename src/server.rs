@@ -30,7 +30,7 @@ impl Server {
         let cors = warp::cors()
             .allow_origin(allowed_origin.as_str())
             .allow_headers(vec!["authorization"])
-            .allow_methods(vec!["GET", "POST", "DELETE"]);
+            .allow_methods(vec!["GET", "POST", "PUT", "DELETE"]);
 
         let authorization = warp::header::<String>("authorization").and_then(
             |autorization_token: String| async move {
