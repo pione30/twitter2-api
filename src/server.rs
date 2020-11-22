@@ -46,26 +46,32 @@ mod router {
 
     fn posts(app: App) -> BoxedFilter<(impl Reply,)> {
         let posts = warp::path("posts");
-        let own_posts = warp::path("own").and(security::authorization()).map(
-            move |claim: jwt_handler::Claims| {
-                app.services
-                    .post_service
-                    .pagenate_posts_of_user_by_sub_id(&claim.sub, 20, 0)
-                    .map_or_else(
-                        |err| {
-                            let mut data = HashMap::new();
-                            data.insert("error".to_string(), format!("{}", err));
-                            warp::reply::with_status(
-                                warp::reply::json(&data),
-                                StatusCode::INTERNAL_SERVER_ERROR,
+        let own_posts =
+            warp::path("own")
+                .and(security::authorization())
+                .map(move |verification_result| {
+                    claims_handle_helper(verification_result, |claims| {
+                        app.services
+                            .post_service
+                            .pagenate_posts_of_user_by_sub_id(&claims.sub, 20, 0)
+                            .map_or_else(
+                                |err| {
+                                    let mut data = HashMap::new();
+                                    data.insert("error".to_string(), format!("{}", err));
+                                    warp::reply::with_status(
+                                        warp::reply::json(&data),
+                                        StatusCode::INTERNAL_SERVER_ERROR,
+                                    )
+                                },
+                                |own_posts| {
+                                    warp::reply::with_status(
+                                        warp::reply::json(&own_posts),
+                                        StatusCode::OK,
+                                    )
+                                },
                             )
-                        },
-                        |own_posts| {
-                            warp::reply::with_status(warp::reply::json(&own_posts), StatusCode::OK)
-                        },
-                    )
-            },
-        );
+                    })
+                });
 
         posts.and(own_posts).boxed()
     }
