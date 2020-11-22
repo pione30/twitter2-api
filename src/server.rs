@@ -20,7 +20,12 @@ mod router {
     use crate::app::App;
     use std::collections::HashMap;
     use twitter2_api::infra::jwt_handler;
-    use warp::{filters::BoxedFilter, http::status::StatusCode, Filter, Reply};
+    use warp::{
+        filters::BoxedFilter,
+        http::status::StatusCode,
+        reply::{self, Json, Reply, WithStatus},
+        Filter,
+    };
 
     pub fn routes(app: &App) -> BoxedFilter<(impl Reply,)> {
         healthcheck().or(api(app)).boxed()
@@ -63,6 +68,40 @@ mod router {
         );
 
         posts.and(own_posts).boxed()
+    }
+
+    /// Inspects `verification_result` to early reply when it's JwtError, or else delegates handling the claims to `handler`.
+    fn claims_handle_helper<F>(
+        verification_result: Result<jwt_handler::Claims, jwt_handler::JwtError>,
+        handler: F,
+    ) -> WithStatus<Json>
+    where
+        F: Fn(jwt_handler::Claims) -> WithStatus<Json>,
+    {
+        let invalid_token_message = "Invalid token".to_string();
+        let internal_server_error_message = "Internal Server Error".to_string();
+
+        let claims = match verification_result {
+            Ok(claims) => claims,
+            Err(jwt_error) => match jwt_error {
+                jwt_handler::JwtError::FetchJwks(_) => {
+                    return reply::with_status(
+                        reply::json(&internal_server_error_message),
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                    );
+                }
+                jwt_handler::JwtError::DecodingFailed(_)
+                | jwt_handler::JwtError::JwkNotFound
+                | jwt_handler::JwtError::KidMissing => {
+                    return reply::with_status(
+                        reply::json(&invalid_token_message),
+                        StatusCode::UNAUTHORIZED,
+                    );
+                }
+            },
+        };
+
+        handler(claims)
     }
 
     mod security {
