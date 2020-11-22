@@ -66,24 +66,29 @@ mod router {
     }
 
     mod security {
+        use std::convert::Infallible;
         use std::env;
         use twitter2_api::infra::jwt_handler;
         use warp::{filters::BoxedFilter, Filter};
 
-        pub fn authorization() -> BoxedFilter<(jwt_handler::Claims,)> {
+        pub fn authorization() -> BoxedFilter<(Result<jwt_handler::Claims, jwt_handler::JwtError>,)>
+        {
             warp::header::<String>("authorization")
-                .and_then(|autorization_token: String| async move {
-                    let token = autorization_token
-                        .trim()
-                        .strip_prefix("Bearer ")
-                        .ok_or_else(warp::reject::reject)?;
-
-                    jwt_handler::verify(token).await.map_err(|err| {
-                        eprintln!("{:?}", err);
-                        warp::reject::reject()
-                    })
-                })
+                .and_then(verify_token)
                 .boxed()
+        }
+
+        async fn verify_token(
+            autorization_token: String,
+        ) -> Result<Result<jwt_handler::Claims, jwt_handler::JwtError>, Infallible> {
+            let token = autorization_token
+                .trim()
+                .strip_prefix("Bearer ")
+                .unwrap_or("");
+
+            let verification_result = jwt_handler::verify(token).await;
+
+            Ok(verification_result)
         }
 
         pub fn cors() -> warp::cors::Builder {
