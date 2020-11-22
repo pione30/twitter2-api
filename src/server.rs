@@ -1,10 +1,6 @@
 use crate::app::App;
-use std::collections::HashMap;
-use std::env;
 use std::future::Future;
 use std::net::SocketAddr;
-use twitter2_api::infra::jwt_handler;
-use warp::{filters::BoxedFilter, http::status::StatusCode, Filter, Reply};
 
 pub struct Server {
     app: App,
@@ -16,16 +12,26 @@ impl Server {
     }
 
     pub fn run<T: Into<SocketAddr> + 'static>(&self, addr: T) -> impl Future<Output = ()> {
-        let routes = self.healthcheck().or(self.api());
+        warp::serve(router::routes(&self.app)).run(addr)
+    }
+}
 
-        warp::serve(routes).run(addr)
+mod router {
+    use crate::app::App;
+    use std::collections::HashMap;
+    use std::env;
+    use twitter2_api::infra::jwt_handler;
+    use warp::{filters::BoxedFilter, http::status::StatusCode, Filter, Reply};
+
+    pub fn routes(app: &App) -> BoxedFilter<(impl Reply,)> {
+        healthcheck().or(api(app)).boxed()
     }
 
-    fn healthcheck(&self) -> BoxedFilter<(String,)> {
+    fn healthcheck() -> BoxedFilter<(String,)> {
         warp::path("healthcheck").map(|| "ok".into()).boxed()
     }
 
-    fn api(&self) -> BoxedFilter<(impl Reply,)> {
+    fn api(app: &App) -> BoxedFilter<(impl Reply,)> {
         let allowed_origin = env::var("ALLOWED_ORIGIN").expect("ALLOWED_ORIGIN must be set");
         let cors = warp::cors()
             .allow_origin(allowed_origin.as_str())
@@ -49,7 +55,7 @@ impl Server {
         let api = warp::path("api");
         let v1 = warp::path("v1");
 
-        let app = self.app.clone();
+        let app = app.clone();
         let posts = warp::path("posts");
         let own_posts =
             warp::path("own")
