@@ -25,7 +25,11 @@ where
     }
 
     pub fn create<'a>(&self, body: &'a str, sub_id: &'a str) -> Result<Post, ServiceError> {
-        let user = self.user_repository.find_by_sub_id(sub_id)?;
+        let user = self
+            .user_repository
+            .find_by_sub_id(sub_id)?
+            .ok_or(ServiceError::NotFound)?;
+
         self.post_repository.create(body, &user)
     }
 
@@ -35,7 +39,11 @@ where
         limit: i64,
         offset: i64,
     ) -> Result<Vec<Post>, ServiceError> {
-        let user = self.user_repository.find_by_sub_id(sub_id)?;
+        let user = self
+            .user_repository
+            .find_by_sub_id(sub_id)?
+            .ok_or(ServiceError::NotFound)?;
+
         self.post_repository
             .pagenate_posts_of_user(&user, limit, offset)
     }
