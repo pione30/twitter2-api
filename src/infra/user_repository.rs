@@ -27,12 +27,13 @@ impl IUserRepository for UserRepository {
             .map_err(ServiceError::DbQueryFailed)
     }
 
-    fn find_by_sub_id<'a>(&self, sub_id: &'a str) -> Result<User, ServiceError> {
+    fn find_by_sub_id<'a>(&self, sub_id: &'a str) -> Result<Option<User>, ServiceError> {
         use crate::schema::users;
 
         users::table
             .filter(users::sub_id.eq(sub_id))
             .first(&*self.conn.lock().unwrap())
+            .optional()
             .map_err(ServiceError::DbQueryFailed)
     }
 }
