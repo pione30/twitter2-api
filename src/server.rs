@@ -18,8 +18,7 @@ impl Server {
 
 mod router {
     use crate::app::App;
-    use std::collections::HashMap;
-    use twitter2_api::infra::jwt_handler;
+    use twitter2_api::{error::ServiceError, infra::jwt_handler};
     use warp::{
         filters::BoxedFilter,
         http::status::StatusCode,
@@ -51,25 +50,25 @@ mod router {
                 .and(security::authorization())
                 .map(move |verification_result| {
                     claims_handle_helper(verification_result, |claims| {
-                        app.services
-                            .post_service
-                            .pagenate_posts_of_user_by_sub_id(&claims.sub, 20, 0)
-                            .map_or_else(
-                                |err| {
-                                    let mut data = HashMap::new();
-                                    data.insert("error".to_string(), format!("{}", err));
-                                    warp::reply::with_status(
-                                        warp::reply::json(&data),
-                                        StatusCode::INTERNAL_SERVER_ERROR,
-                                    )
-                                },
-                                |own_posts| {
-                                    warp::reply::with_status(
-                                        warp::reply::json(&own_posts),
-                                        StatusCode::OK,
-                                    )
-                                },
-                            )
+                        let res = app.services.post_service.pagenate_posts_of_user_by_sub_id(
+                            &claims.sub,
+                            20,
+                            0,
+                        );
+
+                        match res {
+                            Ok(own_posts) => {
+                                reply::with_status(reply::json(&own_posts), StatusCode::OK)
+                            }
+                            Err(ServiceError::NotFound) => reply::with_status(
+                                reply::json(&StatusCode::NOT_FOUND.to_string()),
+                                StatusCode::NOT_FOUND,
+                            ),
+                            Err(ServiceError::DbQueryFailed(_)) => reply::with_status(
+                                reply::json(&StatusCode::INTERNAL_SERVER_ERROR.to_string()),
+                                StatusCode::INTERNAL_SERVER_ERROR,
+                            ),
+                        }
                     })
                 });
 
