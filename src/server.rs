@@ -84,14 +84,13 @@ mod router {
         F: Fn(jwt_handler::Claims) -> WithStatus<Json>,
     {
         let invalid_token_message = "Invalid token".to_string();
-        let internal_server_error_message = "Internal Server Error".to_string();
 
         let claims = match verification_result {
             Ok(claims) => claims,
             Err(jwt_error) => match jwt_error {
                 jwt_handler::JwtError::FetchJwks(_) => {
                     return reply::with_status(
-                        reply::json(&internal_server_error_message),
+                        reply::json(&StatusCode::INTERNAL_SERVER_ERROR.to_string()),
                         StatusCode::INTERNAL_SERVER_ERROR,
                     );
                 }
