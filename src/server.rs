@@ -18,9 +18,13 @@ impl Server {
 
 mod router {
     use crate::app::App;
-    use std::collections::HashMap;
-    use twitter2_api::infra::jwt_handler;
-    use warp::{filters::BoxedFilter, http::status::StatusCode, Filter, Reply};
+    use twitter2_api::{error::ServiceError, infra::jwt_handler};
+    use warp::{
+        filters::BoxedFilter,
+        http::status::StatusCode,
+        reply::{self, Json, Reply, WithStatus},
+        Filter,
+    };
 
     pub fn routes(app: &App) -> BoxedFilter<(impl Reply,)> {
         healthcheck().or(api(app)).boxed()
@@ -41,49 +45,93 @@ mod router {
 
     fn posts(app: App) -> BoxedFilter<(impl Reply,)> {
         let posts = warp::path("posts");
-        let own_posts = warp::path("own").and(security::authorization()).map(
-            move |claim: jwt_handler::Claims| {
-                app.services
-                    .post_service
-                    .pagenate_posts_of_user_by_sub_id(&claim.sub, 20, 0)
-                    .map_or_else(
-                        |err| {
-                            let mut data = HashMap::new();
-                            data.insert("error".to_string(), format!("{}", err));
-                            warp::reply::with_status(
-                                warp::reply::json(&data),
+        let own_posts =
+            warp::path("own")
+                .and(security::authorization())
+                .map(move |verification_result| {
+                    claims_handle_helper(verification_result, |claims| {
+                        let res = app.services.post_service.pagenate_posts_of_user_by_sub_id(
+                            &claims.sub,
+                            20,
+                            0,
+                        );
+
+                        match res {
+                            Ok(own_posts) => {
+                                reply::with_status(reply::json(&own_posts), StatusCode::OK)
+                            }
+                            Err(ServiceError::NotFound) => reply::with_status(
+                                reply::json(&StatusCode::NOT_FOUND.to_string()),
+                                StatusCode::NOT_FOUND,
+                            ),
+                            Err(ServiceError::DbQueryFailed(_)) => reply::with_status(
+                                reply::json(&StatusCode::INTERNAL_SERVER_ERROR.to_string()),
                                 StatusCode::INTERNAL_SERVER_ERROR,
-                            )
-                        },
-                        |own_posts| {
-                            warp::reply::with_status(warp::reply::json(&own_posts), StatusCode::OK)
-                        },
-                    )
-            },
-        );
+                            ),
+                        }
+                    })
+                });
 
         posts.and(own_posts).boxed()
     }
 
+    /// Inspects `verification_result` to early reply when it's JwtError, or else delegates handling the claims to `handler`.
+    fn claims_handle_helper<F>(
+        verification_result: Result<jwt_handler::Claims, jwt_handler::JwtError>,
+        handler: F,
+    ) -> WithStatus<Json>
+    where
+        F: Fn(jwt_handler::Claims) -> WithStatus<Json>,
+    {
+        let invalid_token_message = "Invalid token".to_string();
+
+        let claims = match verification_result {
+            Ok(claims) => claims,
+            Err(jwt_error) => match jwt_error {
+                jwt_handler::JwtError::FetchJwks(_) => {
+                    return reply::with_status(
+                        reply::json(&StatusCode::INTERNAL_SERVER_ERROR.to_string()),
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                    );
+                }
+                jwt_handler::JwtError::DecodingFailed(_)
+                | jwt_handler::JwtError::JwkNotFound
+                | jwt_handler::JwtError::KidMissing => {
+                    return reply::with_status(
+                        reply::json(&invalid_token_message),
+                        StatusCode::UNAUTHORIZED,
+                    );
+                }
+            },
+        };
+
+        handler(claims)
+    }
+
     mod security {
+        use std::convert::Infallible;
         use std::env;
         use twitter2_api::infra::jwt_handler;
         use warp::{filters::BoxedFilter, Filter};
 
-        pub fn authorization() -> BoxedFilter<(jwt_handler::Claims,)> {
+        pub fn authorization() -> BoxedFilter<(Result<jwt_handler::Claims, jwt_handler::JwtError>,)>
+        {
             warp::header::<String>("authorization")
-                .and_then(|autorization_token: String| async move {
-                    let token = autorization_token
-                        .trim()
-                        .strip_prefix("Bearer ")
-                        .ok_or_else(warp::reject::reject)?;
-
-                    jwt_handler::verify(token).await.map_err(|err| {
-                        eprintln!("{:?}", err);
-                        warp::reject::reject()
-                    })
-                })
+                .and_then(verify_token)
                 .boxed()
+        }
+
+        async fn verify_token(
+            autorization_token: String,
+        ) -> Result<Result<jwt_handler::Claims, jwt_handler::JwtError>, Infallible> {
+            let token = autorization_token
+                .trim()
+                .strip_prefix("Bearer ")
+                .unwrap_or("");
+
+            let verification_result = jwt_handler::verify(token).await;
+
+            Ok(verification_result)
         }
 
         pub fn cors() -> warp::cors::Builder {
