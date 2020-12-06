@@ -16,14 +16,16 @@ impl UserRepository {
 }
 
 impl IUserRepository for UserRepository {
-    fn create<'a>(&self, sub_id: &'a str) -> Result<User, ServiceError> {
+    fn create<'a>(&self, sub_id: &'a str) -> Result<usize, ServiceError> {
         use crate::schema::users;
 
         let new_user = NewUser { sub_id };
 
         diesel::insert_into(users::table)
             .values(&new_user)
-            .get_result(&*self.conn.lock().unwrap())
+            .on_conflict(users::sub_id)
+            .do_nothing()
+            .execute(&*self.conn.lock().unwrap())
             .map_err(ServiceError::DbQueryFailed)
     }
 
