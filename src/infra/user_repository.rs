@@ -16,7 +16,7 @@ impl UserRepository {
 }
 
 impl IUserRepository for UserRepository {
-    fn create<'a>(&self, sub_id: &'a str) -> Result<User, ServiceError> {
+    fn create<'a>(&self, sub_id: &'a str) -> Result<usize, ServiceError> {
         use crate::schema::users;
 
         let new_user = NewUser { sub_id };
@@ -25,7 +25,7 @@ impl IUserRepository for UserRepository {
             .values(&new_user)
             .on_conflict(users::sub_id)
             .do_nothing()
-            .get_result(&*self.conn.lock().unwrap())
+            .execute(&*self.conn.lock().unwrap())
             .map_err(ServiceError::DbQueryFailed)
     }
 

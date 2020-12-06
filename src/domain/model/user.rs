@@ -20,6 +20,6 @@ pub struct NewUser<'a> {
 }
 
 pub trait IUserRepository {
-    fn create<'a>(&self, sub_id: &'a str) -> Result<User, ServiceError>;
+    fn create<'a>(&self, sub_id: &'a str) -> Result<usize, ServiceError>;
     fn find_by_sub_id<'a>(&self, sub_id: &'a str) -> Result<Option<User>, ServiceError>;
 }
