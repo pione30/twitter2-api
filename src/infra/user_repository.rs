@@ -23,6 +23,8 @@ impl IUserRepository for UserRepository {
 
         diesel::insert_into(users::table)
             .values(&new_user)
+            .on_conflict(users::sub_id)
+            .do_nothing()
             .get_result(&*self.conn.lock().unwrap())
             .map_err(ServiceError::DbQueryFailed)
     }
