@@ -38,23 +38,53 @@ mod router {
         let api = warp::path("api");
         let v1 = warp::path("v1");
 
-        api.and(v1.and(posts(app.clone())))
+        api.and(v1.and(users(app).or(posts(app))))
             .with(security::cors())
             .boxed()
     }
 
-    fn posts(app: App) -> BoxedFilter<(impl Reply,)> {
+    fn users(app: &App) -> BoxedFilter<(impl Reply,)> {
+        let users = warp::path("users");
+
+        let app_c = app.clone();
+        let create = warp::post()
+            .and(security::authorization())
+            .map(move |verification_result| {
+                claims_handle_helper(verification_result, |claims| {
+                    let res = app_c.services.user_service.create(&claims.sub);
+
+                    match res {
+                        Ok(num) if num == 0 => {
+                            reply::with_status(reply::json(&"".to_string()), StatusCode::NO_CONTENT)
+                        }
+                        Ok(_) => reply::with_status(
+                            reply::json(&StatusCode::CREATED.to_string()),
+                            StatusCode::CREATED,
+                        ),
+                        Err(_) => reply::with_status(
+                            reply::json(&StatusCode::INTERNAL_SERVER_ERROR.to_string()),
+                            StatusCode::INTERNAL_SERVER_ERROR,
+                        ),
+                    }
+                })
+            });
+
+        users.and(create).boxed()
+    }
+
+    fn posts(app: &App) -> BoxedFilter<(impl Reply,)> {
         let posts = warp::path("posts");
+
+        let app_c = app.clone();
         let own_posts =
             warp::path("own")
                 .and(security::authorization())
                 .map(move |verification_result| {
                     claims_handle_helper(verification_result, |claims| {
-                        let res = app.services.post_service.pagenate_posts_of_user_by_sub_id(
-                            &claims.sub,
-                            20,
-                            0,
-                        );
+                        let res = app_c
+                            .services
+                            .post_service
+                            .pagenate_posts_of_user_by_sub_id(&claims.sub, 20, 0);
 
                         match res {
                             Ok(own_posts) => {
