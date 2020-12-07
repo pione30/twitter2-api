@@ -19,6 +19,8 @@ where
     }
 
     pub fn create<'a>(&self, sub_id: &'a str) -> Result<usize, ServiceError> {
-        self.user_repository.create(sub_id)
+        self.user_repository
+            .create(sub_id)
+            .map_err(ServiceError::DbQueryFailed)
     }
 }

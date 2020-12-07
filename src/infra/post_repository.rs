@@ -1,5 +1,4 @@
 use crate::domain::model::{IPostRepository, NewPost, Post, User};
-use crate::error::ServiceError;
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
 use std::sync::{Arc, Mutex};
@@ -16,7 +15,7 @@ impl PostRepository {
 }
 
 impl IPostRepository for PostRepository {
-    fn create<'a>(&self, body: &'a str, user: &'a User) -> Result<Post, ServiceError> {
+    fn create<'a>(&self, body: &'a str, user: &'a User) -> QueryResult<Post> {
         use crate::schema::posts;
 
         let new_post = NewPost {
@@ -27,7 +26,6 @@ impl IPostRepository for PostRepository {
         diesel::insert_into(posts::table)
             .values(&new_post)
             .get_result(&*self.conn.lock().unwrap())
-            .map_err(ServiceError::DbQueryFailed)
     }
 
     fn pagenate_posts_of_user<'a>(
@@ -35,7 +33,7 @@ impl IPostRepository for PostRepository {
         user: &'a User,
         limit: i64,
         offset: i64,
-    ) -> Result<Vec<Post>, ServiceError> {
+    ) -> QueryResult<Vec<Post>> {
         use crate::schema::posts;
         use crate::schema::users;
 
@@ -47,6 +45,5 @@ impl IPostRepository for PostRepository {
             .limit(limit)
             .offset(offset)
             .load(&*self.conn.lock().unwrap())
-            .map_err(ServiceError::DbQueryFailed)
     }
 }
