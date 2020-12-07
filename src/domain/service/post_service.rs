@@ -30,7 +30,9 @@ where
             .find_by_sub_id(sub_id)?
             .ok_or(ServiceError::NotFound)?;
 
-        self.post_repository.create(body, &user)
+        self.post_repository
+            .create(body, &user)
+            .map_err(ServiceError::DbQueryFailed)
     }
 
     pub fn pagenate_posts_of_user_by_sub_id(
@@ -46,5 +48,6 @@ where
 
         self.post_repository
             .pagenate_posts_of_user(&user, limit, offset)
+            .map_err(ServiceError::DbQueryFailed)
     }
 }
