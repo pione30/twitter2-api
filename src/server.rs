@@ -38,9 +38,37 @@ mod router {
         let api = warp::path("api");
         let v1 = warp::path("v1");
 
-        api.and(v1.and(posts(app.clone())))
+        api.and(v1.and(users(app.clone()).or(posts(app.clone()))))
             .with(security::cors())
             .boxed()
+    }
+
+    fn users(app: App) -> BoxedFilter<(impl Reply,)> {
+        let users = warp::path("users");
+
+        let create = warp::post()
+            .and(security::authorization())
+            .map(move |verification_result| {
+                claims_handle_helper(verification_result, |claims| {
+                    let res = app.services.user_service.create(&claims.sub);
+
+                    match res {
+                        Ok(num) if num == 0 => {
+                            reply::with_status(reply::json(&"".to_string()), StatusCode::NO_CONTENT)
+                        }
+                        Ok(_) => reply::with_status(
+                            reply::json(&StatusCode::CREATED.to_string()),
+                            StatusCode::CREATED,
+                        ),
+                        Err(_) => reply::with_status(
+                            reply::json(&StatusCode::INTERNAL_SERVER_ERROR.to_string()),
+                            StatusCode::INTERNAL_SERVER_ERROR,
+                        ),
+                    }
+                })
+            });
+
+        users.and(create).boxed()
     }
 
     fn posts(app: App) -> BoxedFilter<(impl Reply,)> {
