@@ -1,8 +1,7 @@
 use crate::domain::model::UserId;
-use crate::error::ServiceError;
 use crate::schema::users;
 use chrono::{DateTime, Utc};
-use diesel::{Insertable, Queryable};
+use diesel::{Insertable, QueryResult, Queryable};
 use uuid::Uuid;
 
 #[derive(Queryable, Debug, PartialEq, Eq)]
@@ -20,6 +19,6 @@ pub struct NewUser<'a> {
 }
 
 pub trait IUserRepository {
-    fn create<'a>(&self, sub_id: &'a str) -> Result<usize, ServiceError>;
-    fn find_by_sub_id<'a>(&self, sub_id: &'a str) -> Result<Option<User>, ServiceError>;
+    fn create<'a>(&self, sub_id: &'a str) -> QueryResult<usize>;
+    fn find_by_sub_id<'a>(&self, sub_id: &'a str) -> QueryResult<Option<User>>;
 }
