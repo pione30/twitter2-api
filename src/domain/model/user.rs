@@ -19,6 +19,6 @@ pub struct NewUser<'a> {
 }
 
 pub trait IUserRepository {
-    fn create<'a>(&self, sub_id: &'a str) -> QueryResult<usize>;
+    fn upsert<'a>(&self, sub_id: &'a str) -> QueryResult<usize>;
     fn find_by_sub_id<'a>(&self, sub_id: &'a str) -> QueryResult<Option<User>>;
 }

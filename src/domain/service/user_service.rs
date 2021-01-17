@@ -18,9 +18,9 @@ where
         UserService { user_repository }
     }
 
-    pub fn create<'a>(&self, sub_id: &'a str) -> Result<usize, ServiceError> {
+    pub fn upsert<'a>(&self, sub_id: &'a str) -> Result<usize, ServiceError> {
         self.user_repository
-            .create(sub_id)
+            .upsert(sub_id)
             .map_err(ServiceError::DbQueryFailed)
     }
 }

@@ -15,7 +15,7 @@ impl UserRepository {
 }
 
 impl IUserRepository for UserRepository {
-    fn create<'a>(&self, sub_id: &'a str) -> QueryResult<usize> {
+    fn upsert<'a>(&self, sub_id: &'a str) -> QueryResult<usize> {
         use crate::schema::users;
 
         let new_user = NewUser { sub_id };

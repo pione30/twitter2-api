@@ -47,11 +47,11 @@ mod router {
         let users = warp::path("users");
 
         let app_c = app.clone();
-        let create = warp::post()
+        let upsert = warp::put()
             .and(security::authorization())
             .map(move |verification_result| {
                 claims_handle_helper(verification_result, |claims| {
-                    let res = app_c.services.user_service.create(&claims.sub);
+                    let res = app_c.services.user_service.upsert(&claims.sub);
 
                     match res {
                         Ok(num) if num == 0 => {
@@ -69,7 +69,7 @@ mod router {
                 })
             });
 
-        users.and(create).boxed()
+        users.and(upsert).boxed()
     }
 
     fn posts(app: &App) -> BoxedFilter<(impl Reply,)> {
